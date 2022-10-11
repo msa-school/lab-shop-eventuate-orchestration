@@ -15,16 +15,7 @@ public class Inventory  {
     
     @Id
     @GeneratedValue(strategy=GenerationType.AUTO)
-    
-    
-    
-    
-    
     private Long id;
-    
-    
-    
-    
     
     private Long stock;
 
@@ -40,7 +31,7 @@ public class Inventory  {
 
 
 
-    public static void decreaseStock(OrderPlaced orderPlaced){
+    public static void decreaseStock(DecreaseStockCommand decreaseStockCommand){
 
         /** Example 1:  new item 
         Inventory inventory = new Inventory();
@@ -50,9 +41,13 @@ public class Inventory  {
 
         /** Example 2:  finding and process */
         
-        repository().findById(Long.valueOf(orderPlaced.getProductId())).ifPresent(inventory->{
+        repository().findById(Long.valueOf(decreaseStockCommand.getProductId())).ifPresent(inventory->{
             
-            inventory.setStock(inventory.getStock() - orderPlaced.getQty()); // do something
+            if(inventory.getStock() < decreaseStockCommand.getQty()){
+                throw new OutOfStockException();
+            }
+
+            inventory.setStock(inventory.getStock() - decreaseStockCommand.getQty()); // do something
             repository().save(inventory);
 
 

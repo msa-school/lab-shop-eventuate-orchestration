@@ -12,5 +12,4 @@ public class DecreaseStockCommand implements Command {
     Long productId;
     int qty;
 
-
 }

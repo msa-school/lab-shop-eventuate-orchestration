@@ -88,7 +88,11 @@
             <version>${eventuateTramViewSupportVersion}</version>
         </dependency>
 
-	
+		<dependency>
+			<groupId>io.eventuate.tram.sagas</groupId>
+			<artifactId>eventuate-tram-sagas-spring-participant-starter</artifactId>
+			<version>0.18.0.RELEASE</version>
+		</dependency>
 
 		<!-- kafka streams -->
 		<!-- <dependency>

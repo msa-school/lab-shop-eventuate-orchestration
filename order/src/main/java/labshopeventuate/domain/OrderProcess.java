@@ -45,7 +45,7 @@ public class OrderProcess implements SimpleSaga<OrderProcessStatus> {
   }
 
   private CommandWithDestination decreaseStock(OrderProcessStatus status) {
-    return send(new DecreaseStockCommand(status.getOrderId(), status.getQty()))
+    return send(new DecreaseStockCommand(status.getOrderId(), status.getProductId(), status.getQty()))
             .to("inventory")
             .build();
   }

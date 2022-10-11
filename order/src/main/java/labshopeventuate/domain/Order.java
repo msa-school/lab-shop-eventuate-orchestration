@@ -47,6 +47,7 @@ public class Order  {
         
         processStatus.setOrderId(getId());
         processStatus.setQty(getQty());
+        processStatus.setProductId(Long.valueOf(getProductId()));
 
         sagaFactory.create(orderProcess, processStatus);
     }
