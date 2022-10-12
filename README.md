@@ -36,7 +36,7 @@ check the stock remaining:
 http :8082/inventories/1    #stock must be 4
 ```
 
-create and order again:
+create an another order:
 ```
 http :8081/orders productId=1 qty=6
 ```
