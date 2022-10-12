@@ -65,84 +65,167 @@ cd /bin
 
 kafka-topics --bootstrap-server=localhost:9092 --list
 kafka-console-consumer --bootstrap-server localhost:9092 --topic labshopeventuate.domain.Order --from-beginning
-kafka-console-consumer --bootstrap-server localhost:9092 --topic labshopeventuate.domain.Order --from-beginning
+```
+
+## Implementation Details
+
+
+- "Order::onPostPersist" starts a saga with SagaInstanceFactory that is provided by Eventuate:
+```
+    @PostPersist
+    public void onPostPersist(){
+        SagaInstanceFactory sagaFactory = OrderApplication.applicationContext.getBean(SagaInstanceFactory.class);
+        OrderProcess orderProcess = OrderApplication.applicationContext.getBean(OrderProcess.class);
+        OrderProcessStatus processStatus = new OrderProcessStatus();
+        
+        processStatus.setOrderId(getId());
+        processStatus.setQty(getQty());
+        processStatus.setProductId(Long.valueOf(getProductId()));
+
+        sagaFactory.create(orderProcess, processStatus);
+    }
+```
+
+- "OrderProcess" defines the saga process definition while the "OrderProcessStatus" holds the status of saga instance:
+```
+@Component
+public class OrderProcess implements SimpleSaga<OrderProcessStatus> {
+
+  //private OrderService orderService;
+
+  OrderRepository repository;
+
+  public OrderProcess(OrderRepository repository) {
+    this.repository = repository;
+  }
+
+  private SagaDefinition<OrderProcessStatus> sagaDefinition =
+          step()
+            .invokeLocal(this::create)
+            .withCompensation(this::reject)
+          .step()
+            .invokeParticipant(this::decreaseStock)
+            .onReply(OutOfStockException.class, this::handleOutOfStock)
+          .step()
+            .invokeLocal(this::approve)
+          .build();
+
+  private void handleOutOfStock(OrderProcessStatus status, OutOfStockException reply) {
+    status.setRejectReason(OutOfStockException.class.getSimpleName());
+  }
+
+  @Override
+  public SagaDefinition<OrderProcessStatus> getSagaDefinition() {
+    return this.sagaDefinition;
+  }
+
+  private void create(OrderProcessStatus status) {
+    // Order order = new Order();
+    // repository.save(order);
+  }
+
+  private CommandWithDestination decreaseStock(OrderProcessStatus status) {
+    return send(new DecreaseStockCommand(status.getOrderId(), status.getProductId(), status.getQty()))
+            .to("inventory")
+            .build();
+  }
+
+  private void reject(OrderProcessStatus status) {
+    repository.findById(status.getOrderId()).ifPresent(order -> {
+        order.setStatus("REJECTED");
+    });
+  }
+
+  private void approve(OrderProcessStatus status) {
+    repository.findById(status.getOrderId()).ifPresent(order -> {
+        order.setStatus("APPROVED");
+    });
+  }
+}
+
+```
+
+- As stated in "application.yaml", Eventuate Tram uses the configuration to connect to the database and for sending message and the Eventuate CDC pick up the message from the db log and send events to the kafka:
+```
+spring:
+  profiles: default
+  jpa:
+    generate-ddl: true
+    properties:
+      hibernate:
+        show_sql: true
+        format_sql: true
+
+  datasource:
+    url: jdbc:mysql://${DOCKER_HOST_IP:localhost}/eventuate
+    username: mysqluser
+    password: mysqlpw
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+
+eventuatelocal:
+  kafka:
+    bootstrap.servers: ${DOCKER_HOST_IP:localhost}:9092
+
+
+cdc:
+  service:
+    url: http://localhost:8099
+
 ```
 
 
-- When I face to such a compilation problem, to get the right (working) version of dependencies, I could use this command from working example of official eventuate site:
 
+- In inventory service, the commands are subscribed by the CommandHandler:
 ```
-./gradlew :customer-service:dependencies | grep io.eventuate.tram.sagas
-Picked up JAVA_TOOL_OPTIONS:  -Xmx3489m
-|    +--- io.eventuate.tram.sagas:eventuate-tram-sagas-bom:0.20.0.RELEASE
-|    |    +--- io.eventuate.tram.sagas:eventuate-tram-sagas-spring-participant-starter:0.20.0.RELEASE (c)
-|    |    +--- io.eventuate.tram.sagas:eventuate-tram-sagas-spring-participant:0.20.0.RELEASE (c)
-|    |    +--- io.eventuate.tram.sagas:eventuate-tram-sagas-spring-common:0.20.0.RELEASE (c)
-|    |    +--- io.eventuate.tram.sagas:eventuate-tram-sagas-participant:0.20.0.RELEASE (c)
-|    |    \--- io.eventuate.tram.sagas:eventuate-tram-sagas-common:0.20.0.RELEASE (c)
-|    +--- io.eventuate.tram.sagas:eventuate-tram-sagas-quarkus-bom:0.5.1.RELEASE
-+--- io.eventuate.tram.sagas:eventuate-tram-sagas-spring-participant-starter -> 0.20.0.RELEASE
-|    \--- io.eventuate.tram.sagas:eventuate-tram-sagas-spring-participant:0.20.0.RELEASE
-|         +--- io.eventuate.tram.sagas:eventuate-tram-sagas-spring-common:0.20.0.RELEASE
-|         |    +--- io.eventuate.tram.sagas:eventuate-tram-sagas-common:0.20.0.RELEASE
-|         \--- io.eventuate.tram.sagas:eventuate-tram-sagas-participant:0.20.0.RELEASE
-|              \--- io.eventuate.tram.sagas:eventuate-tram-sagas-common:0.20.0.RELEASE (*)
-+--- io.eventuate.tram.sagas:eventuate-tram-sagas-spring-participant-starter (n)
-|    +--- io.eventuate.tram.sagas:eventuate-tram-sagas-bom:0.20.0.RELEASE
-|    |    +--- io.eventuate.tram.sagas:eventuate-tram-sagas-spring-participant-starter:0.20.0.RELEASE (c)
-|    |    +--- io.eventuate.tram.sagas:eventuate-tram-sagas-spring-participant:0.20.0.RELEASE (c)
-|    |    +--- io.eventuate.tram.sagas:eventuate-tram-sagas-spring-common:0.20.0.RELEASE (c)
-|    |    +--- io.eventuate.tram.sagas:eventuate-tram-sagas-participant:0.20.0.RELEASE (c)
-|    |    \--- io.eventuate.tram.sagas:eventuate-tram-sagas-common:0.20.0.RELEASE (c)
-|    +--- io.eventuate.tram.sagas:eventuate-tram-sagas-quarkus-bom:0.5.1.RELEASE
-+--- io.eventuate.tram.sagas:eventuate-tram-sagas-spring-participant-starter -> 0.20.0.RELEASE
-|    \--- io.eventuate.tram.sagas:eventuate-tram-sagas-spring-participant:0.20.0.RELEASE
-|         +--- io.eventuate.tram.sagas:eventuate-tram-sagas-spring-common:0.20.0.RELEASE
-|         |    +--- io.eventuate.tram.sagas:eventuate-tram-sagas-common:0.20.0.RELEASE
-|         \--- io.eventuate.tram.sagas:eventuate-tram-sagas-participant:0.20.0.RELEASE
-|              \--- io.eventuate.tram.sagas:eventuate-tram-sagas-common:0.20.0.RELEASE (*)
-|    +--- io.eventuate.tram.sagas:eventuate-tram-sagas-bom:0.20.0.RELEASE
-|    |    +--- io.eventuate.tram.sagas:eventuate-tram-sagas-spring-participant-starter:0.20.0.RELEASE (c)
-|    |    +--- io.eventuate.tram.sagas:eventuate-tram-sagas-spring-participant:0.20.0.RELEASE (c)
-|    |    +--- io.eventuate.tram.sagas:eventuate-tram-sagas-spring-common:0.20.0.RELEASE (c)
-|    |    +--- io.eventuate.tram.sagas:eventuate-tram-sagas-participant:0.20.0.RELEASE (c)
-|    |    \--- io.eventuate.tram.sagas:eventuate-tram-sagas-common:0.20.0.RELEASE (c)
-|    +--- io.eventuate.tram.sagas:eventuate-tram-sagas-quarkus-bom:0.5.1.RELEASE
-+--- io.eventuate.tram.sagas:eventuate-tram-sagas-spring-participant-starter -> 0.20.0.RELEASE
-|    \--- io.eventuate.tram.sagas:eventuate-tram-sagas-spring-participant:0.20.0.RELEASE
-|         +--- io.eventuate.tram.sagas:eventuate-tram-sagas-spring-common:0.20.0.RELEASE
-|         |    +--- io.eventuate.tram.sagas:eventuate-tram-sagas-common:0.20.0.RELEASE
-|         \--- io.eventuate.tram.sagas:eventuate-tram-sagas-participant:0.20.0.RELEASE
-|              \--- io.eventuate.tram.sagas:eventuate-tram-sagas-common:0.20.0.RELEASE (*)
-|    +--- io.eventuate.tram.sagas:eventuate-tram-sagas-bom:0.20.0.RELEASE
-|    |    +--- io.eventuate.tram.sagas:eventuate-tram-sagas-spring-participant-starter:0.20.0.RELEASE (c)
-|    |    +--- io.eventuate.tram.sagas:eventuate-tram-sagas-spring-participant:0.20.0.RELEASE (c)
-|    |    +--- io.eventuate.tram.sagas:eventuate-tram-sagas-spring-common:0.20.0.RELEASE (c)
-|    |    +--- io.eventuate.tram.sagas:eventuate-tram-sagas-participant:0.20.0.RELEASE (c)
-|    |    \--- io.eventuate.tram.sagas:eventuate-tram-sagas-common:0.20.0.RELEASE (c)
-|    +--- io.eventuate.tram.sagas:eventuate-tram-sagas-quarkus-bom:0.5.1.RELEASE
-+--- io.eventuate.tram.sagas:eventuate-tram-sagas-spring-participant-starter -> 0.20.0.RELEASE
-|    \--- io.eventuate.tram.sagas:eventuate-tram-sagas-spring-participant:0.20.0.RELEASE
-|         +--- io.eventuate.tram.sagas:eventuate-tram-sagas-spring-common:0.20.0.RELEASE
-|         |    +--- io.eventuate.tram.sagas:eventuate-tram-sagas-common:0.20.0.RELEASE
-|         \--- io.eventuate.tram.sagas:eventuate-tram-sagas-participant:0.20.0.RELEASE
-|              \--- io.eventuate.tram.sagas:eventuate-tram-sagas-common:0.20.0.RELEASE (*)
-|    +--- io.eventuate.tram.sagas:eventuate-tram-sagas-bom:0.20.0.RELEASE
-|    |    +--- io.eventuate.tram.sagas:eventuate-tram-sagas-spring-participant-starter:0.20.0.RELEASE (c)
-|    |    +--- io.eventuate.tram.sagas:eventuate-tram-sagas-spring-participant:0.20.0.RELEASE (c)
-|    |    +--- io.eventuate.tram.sagas:eventuate-tram-sagas-spring-common:0.20.0.RELEASE (c)
-|    |    +--- io.eventuate.tram.sagas:eventuate-tram-sagas-participant:0.20.0.RELEASE (c)
-|    |    \--- io.eventuate.tram.sagas:eventuate-tram-sagas-common:0.20.0.RELEASE (c)
-|    +--- io.eventuate.tram.sagas:eventuate-tram-sagas-quarkus-bom:0.5.1.RELEASE
-+--- io.eventuate.tram.sagas:eventuate-tram-sagas-spring-participant-starter -> 0.20.0.RELEASE
-|    \--- io.eventuate.tram.sagas:eventuate-tram-sagas-spring-participant:0.20.0.RELEASE
-|         +--- io.eventuate.tram.sagas:eventuate-tram-sagas-spring-common:0.20.0.RELEASE
-|         |    +--- io.eventuate.tram.sagas:eventuate-tram-sagas-common:0.20.0.RELEASE
-|         \--- io.eventuate.tram.sagas:eventuate-tram-sagas-participant:0.20.0.RELEASE
-|              \--- io.eventuate.tram.sagas:eventuate-tram-sagas-common:0.20.0.RELEASE (*)
+    # InventoryApplication.java
+
+    @Bean
+    public CommandDispatcher commandDispatcher(CommandHandler commandHanlder,
+                                                       SagaCommandDispatcherFactory sagaCommandDispatcherFactory) {
+  
+      return sagaCommandDispatcherFactory.make("customerCommandDispatcher", SagaCommandHandlersBuilder
+                  .fromChannel("inventory")
+                  .onMessage(DecreaseStockCommand.class, CommandHandler::decreaseStock)
+                  .build()
+                );
+    }
 ```
 
+- CommandHanlder tries to call decreaseStock and if there's an exception, will return the error object and this will be published to the 'Reply' kafka topic:
+```
+  public static Message decreaseStock(CommandMessage<DecreaseStockCommand> cm) {
+    DecreaseStockCommand cmd = cm.getCommand();
+    try {
+        Inventory.decreaseStock(cmd);
 
+      return withSuccess("SUCCESS");
+    } catch (Exception e) {
+      return withFailure(e);
+    }
+  }
+```
+
+- In the aggagate, the 'decreaseStock' method throws the OutOfStockException when the stock is insufficient
+```
+
+    public static void decreaseStock(DecreaseStockCommand decreaseStockCommand){
+        
+        repository().findById(Long.valueOf(decreaseStockCommand.getProductId())).ifPresent(inventory->{
+            
+            if(inventory.getStock() < decreaseStockCommand.getQty()){
+                throw new OutOfStockException();
+            }
+
+            inventory.setStock(inventory.getStock() - decreaseStockCommand.getQty());
+            repository().save(inventory);
+
+         });
+        
+    }
+
+    
+```
 
 
 ## Frequent Errors
@@ -153,4 +236,8 @@ https://github.com/eventuate-tram/eventuate-tram-sagas/blob/master/mssql/5.tram-
 
 
 ## Choreography version
-https://github.com/jinyoung/lab-shop-eventuate
+- https://github.com/jinyoung/lab-shop-eventuate
+
+
+## References
+- https://eventuate.io/abouteventuatetram.html

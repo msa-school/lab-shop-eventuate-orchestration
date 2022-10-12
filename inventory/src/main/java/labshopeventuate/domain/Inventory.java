@@ -32,14 +32,6 @@ public class Inventory  {
 
 
     public static void decreaseStock(DecreaseStockCommand decreaseStockCommand){
-
-        /** Example 1:  new item 
-        Inventory inventory = new Inventory();
-        repository().save(inventory);
-
-        */
-
-        /** Example 2:  finding and process */
         
         repository().findById(Long.valueOf(decreaseStockCommand.getProductId())).ifPresent(inventory->{
             
@@ -50,12 +42,11 @@ public class Inventory  {
             inventory.setStock(inventory.getStock() - decreaseStockCommand.getQty()); // do something
             repository().save(inventory);
 
-
          });
-       
-
         
     }
+
+    
     public static void increaseStock(OrderCancelled orderCancelled){
 
         /** Example 1:  new item 
