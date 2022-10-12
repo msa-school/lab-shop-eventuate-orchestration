@@ -230,7 +230,7 @@ cdc:
 
 ## Frequent Errors
 
-If the oder service complain to there is no tables, you may create by yourself with following DDL:
+If the oder service complains that there is no tables, you may create by yourself with following DDL:
 
 https://github.com/eventuate-tram/eventuate-tram-sagas/blob/master/mssql/5.tram-saga-schema.sql
 
