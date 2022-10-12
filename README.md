@@ -58,3 +58,91 @@ Possible Errors:
 {"binlogFilename":"mysql-bin.000003","offset":154631,"rowsToSkip":0}
 {"binlogFilename":"mysql-bin.000003","offset":154815,"rowsToSkip":0}
 ```
+
+
+- When I face to such a compilation problem, to get the right (working) version of dependencies, I could use this command from working example of official eventuate site:
+
+```
+./gradlew :customer-service:dependencies | grep io.eventuate.tram.sagas
+Picked up JAVA_TOOL_OPTIONS:  -Xmx3489m
+|    +--- io.eventuate.tram.sagas:eventuate-tram-sagas-bom:0.20.0.RELEASE
+|    |    +--- io.eventuate.tram.sagas:eventuate-tram-sagas-spring-participant-starter:0.20.0.RELEASE (c)
+|    |    +--- io.eventuate.tram.sagas:eventuate-tram-sagas-spring-participant:0.20.0.RELEASE (c)
+|    |    +--- io.eventuate.tram.sagas:eventuate-tram-sagas-spring-common:0.20.0.RELEASE (c)
+|    |    +--- io.eventuate.tram.sagas:eventuate-tram-sagas-participant:0.20.0.RELEASE (c)
+|    |    \--- io.eventuate.tram.sagas:eventuate-tram-sagas-common:0.20.0.RELEASE (c)
+|    +--- io.eventuate.tram.sagas:eventuate-tram-sagas-quarkus-bom:0.5.1.RELEASE
++--- io.eventuate.tram.sagas:eventuate-tram-sagas-spring-participant-starter -> 0.20.0.RELEASE
+|    \--- io.eventuate.tram.sagas:eventuate-tram-sagas-spring-participant:0.20.0.RELEASE
+|         +--- io.eventuate.tram.sagas:eventuate-tram-sagas-spring-common:0.20.0.RELEASE
+|         |    +--- io.eventuate.tram.sagas:eventuate-tram-sagas-common:0.20.0.RELEASE
+|         \--- io.eventuate.tram.sagas:eventuate-tram-sagas-participant:0.20.0.RELEASE
+|              \--- io.eventuate.tram.sagas:eventuate-tram-sagas-common:0.20.0.RELEASE (*)
++--- io.eventuate.tram.sagas:eventuate-tram-sagas-spring-participant-starter (n)
+|    +--- io.eventuate.tram.sagas:eventuate-tram-sagas-bom:0.20.0.RELEASE
+|    |    +--- io.eventuate.tram.sagas:eventuate-tram-sagas-spring-participant-starter:0.20.0.RELEASE (c)
+|    |    +--- io.eventuate.tram.sagas:eventuate-tram-sagas-spring-participant:0.20.0.RELEASE (c)
+|    |    +--- io.eventuate.tram.sagas:eventuate-tram-sagas-spring-common:0.20.0.RELEASE (c)
+|    |    +--- io.eventuate.tram.sagas:eventuate-tram-sagas-participant:0.20.0.RELEASE (c)
+|    |    \--- io.eventuate.tram.sagas:eventuate-tram-sagas-common:0.20.0.RELEASE (c)
+|    +--- io.eventuate.tram.sagas:eventuate-tram-sagas-quarkus-bom:0.5.1.RELEASE
++--- io.eventuate.tram.sagas:eventuate-tram-sagas-spring-participant-starter -> 0.20.0.RELEASE
+|    \--- io.eventuate.tram.sagas:eventuate-tram-sagas-spring-participant:0.20.0.RELEASE
+|         +--- io.eventuate.tram.sagas:eventuate-tram-sagas-spring-common:0.20.0.RELEASE
+|         |    +--- io.eventuate.tram.sagas:eventuate-tram-sagas-common:0.20.0.RELEASE
+|         \--- io.eventuate.tram.sagas:eventuate-tram-sagas-participant:0.20.0.RELEASE
+|              \--- io.eventuate.tram.sagas:eventuate-tram-sagas-common:0.20.0.RELEASE (*)
+|    +--- io.eventuate.tram.sagas:eventuate-tram-sagas-bom:0.20.0.RELEASE
+|    |    +--- io.eventuate.tram.sagas:eventuate-tram-sagas-spring-participant-starter:0.20.0.RELEASE (c)
+|    |    +--- io.eventuate.tram.sagas:eventuate-tram-sagas-spring-participant:0.20.0.RELEASE (c)
+|    |    +--- io.eventuate.tram.sagas:eventuate-tram-sagas-spring-common:0.20.0.RELEASE (c)
+|    |    +--- io.eventuate.tram.sagas:eventuate-tram-sagas-participant:0.20.0.RELEASE (c)
+|    |    \--- io.eventuate.tram.sagas:eventuate-tram-sagas-common:0.20.0.RELEASE (c)
+|    +--- io.eventuate.tram.sagas:eventuate-tram-sagas-quarkus-bom:0.5.1.RELEASE
++--- io.eventuate.tram.sagas:eventuate-tram-sagas-spring-participant-starter -> 0.20.0.RELEASE
+|    \--- io.eventuate.tram.sagas:eventuate-tram-sagas-spring-participant:0.20.0.RELEASE
+|         +--- io.eventuate.tram.sagas:eventuate-tram-sagas-spring-common:0.20.0.RELEASE
+|         |    +--- io.eventuate.tram.sagas:eventuate-tram-sagas-common:0.20.0.RELEASE
+|         \--- io.eventuate.tram.sagas:eventuate-tram-sagas-participant:0.20.0.RELEASE
+|              \--- io.eventuate.tram.sagas:eventuate-tram-sagas-common:0.20.0.RELEASE (*)
+|    +--- io.eventuate.tram.sagas:eventuate-tram-sagas-bom:0.20.0.RELEASE
+|    |    +--- io.eventuate.tram.sagas:eventuate-tram-sagas-spring-participant-starter:0.20.0.RELEASE (c)
+|    |    +--- io.eventuate.tram.sagas:eventuate-tram-sagas-spring-participant:0.20.0.RELEASE (c)
+|    |    +--- io.eventuate.tram.sagas:eventuate-tram-sagas-spring-common:0.20.0.RELEASE (c)
+|    |    +--- io.eventuate.tram.sagas:eventuate-tram-sagas-participant:0.20.0.RELEASE (c)
+|    |    \--- io.eventuate.tram.sagas:eventuate-tram-sagas-common:0.20.0.RELEASE (c)
+|    +--- io.eventuate.tram.sagas:eventuate-tram-sagas-quarkus-bom:0.5.1.RELEASE
++--- io.eventuate.tram.sagas:eventuate-tram-sagas-spring-participant-starter -> 0.20.0.RELEASE
+|    \--- io.eventuate.tram.sagas:eventuate-tram-sagas-spring-participant:0.20.0.RELEASE
+|         +--- io.eventuate.tram.sagas:eventuate-tram-sagas-spring-common:0.20.0.RELEASE
+|         |    +--- io.eventuate.tram.sagas:eventuate-tram-sagas-common:0.20.0.RELEASE
+|         \--- io.eventuate.tram.sagas:eventuate-tram-sagas-participant:0.20.0.RELEASE
+|              \--- io.eventuate.tram.sagas:eventuate-tram-sagas-common:0.20.0.RELEASE (*)
+|    +--- io.eventuate.tram.sagas:eventuate-tram-sagas-bom:0.20.0.RELEASE
+|    |    +--- io.eventuate.tram.sagas:eventuate-tram-sagas-spring-participant-starter:0.20.0.RELEASE (c)
+|    |    +--- io.eventuate.tram.sagas:eventuate-tram-sagas-spring-participant:0.20.0.RELEASE (c)
+|    |    +--- io.eventuate.tram.sagas:eventuate-tram-sagas-spring-common:0.20.0.RELEASE (c)
+|    |    +--- io.eventuate.tram.sagas:eventuate-tram-sagas-participant:0.20.0.RELEASE (c)
+|    |    \--- io.eventuate.tram.sagas:eventuate-tram-sagas-common:0.20.0.RELEASE (c)
+|    +--- io.eventuate.tram.sagas:eventuate-tram-sagas-quarkus-bom:0.5.1.RELEASE
++--- io.eventuate.tram.sagas:eventuate-tram-sagas-spring-participant-starter -> 0.20.0.RELEASE
+|    \--- io.eventuate.tram.sagas:eventuate-tram-sagas-spring-participant:0.20.0.RELEASE
+|         +--- io.eventuate.tram.sagas:eventuate-tram-sagas-spring-common:0.20.0.RELEASE
+|         |    +--- io.eventuate.tram.sagas:eventuate-tram-sagas-common:0.20.0.RELEASE
+|         \--- io.eventuate.tram.sagas:eventuate-tram-sagas-participant:0.20.0.RELEASE
+|              \--- io.eventuate.tram.sagas:eventuate-tram-sagas-common:0.20.0.RELEASE (*)
+```
+
+
+## Test HTTP Scripts
+```
+http :8082/inventories id=1 stock=10
+http :8081/orders productId=1 qty=1
+```
+
+
+## Frequent Errors
+
+DB 생성이 안된 경우:  다음 스크립트로 생성해주면 됨:
+
+https://github.com/eventuate-tram/eventuate-tram-sagas/blob/master/mssql/5.tram-saga-schema.sql

@@ -85,7 +85,7 @@
 		<dependency>
 			<groupId>io.eventuate.tram.sagas</groupId>
 			<artifactId>eventuate-tram-sagas-spring-orchestration-simple-dsl-starter</artifactId>
-			<version>0.18.0.RELEASE</version>
+			<version>0.20.0.RELEASE</version>
 		</dependency>
         <dependency>
             <groupId>io.eventuate.tram.view.support</groupId>
