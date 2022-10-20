@@ -1,6 +1,7 @@
 # Microservice Orchestration with Eventuate + Spring Data REST
 
-https://gitpod.io/#https://github.com/msa-school/lab-shop-eventuate-orchestration
+- Cloud IDE: https://gitpod.io/#https://github.com/msa-school/lab-shop-eventuate-orchestration
+- Video instruction:  https://youtu.be/8aPvj3ZSD-c
 
 ## How to run
 
