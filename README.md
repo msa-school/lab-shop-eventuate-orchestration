@@ -10,6 +10,24 @@ cd kafka
 docker-compose up
 ```
 
+- install DDLs
+If the oder service complains that there is no tables, you may create by yourself with following DDL:
+
+connect to the mysql console:
+```
+docker exec -it kafka-mysql-1 /bin/bash
+
+mysql --user=root --password=$MYSQL_ROOT_PASSWORD
+use eventuate;
+```
+
+and copy and paste the DDLs there:
+
+https://github.com/eventuate-tram/eventuate-tram-sagas/blob/master/mssql/5.tram-saga-schema.sql
+
+
+
+
 - run each microservice
 ```
 cd order
@@ -66,7 +84,13 @@ docker exec -it kafka-kafka-1 /bin/bash
 cd /bin
 
 kafka-topics --bootstrap-server=localhost:9092 --list
-kafka-console-consumer --bootstrap-server localhost:9092 --topic labshopeventuate.domain.Order --from-beginning
+kafka-console-consumer --bootstrap-server localhost:9092 --topic inventory --from-beginning
+
+# another terminal
+
+kafka-console-consumer --bootstrap-server localhost:9092 --topic inventory --from-beginning
+
+
 ```
 
 ## Implementation Details
